@@ -4,13 +4,10 @@ from database import run_query, run_action
 def render():
     st.header("Gerenciamento de Turmas")
     
-    # Adicionada a aba "Editar Turma"
     tab1, tab2, tab3, tab4 = st.tabs(["Listar Turmas", "Nova Turma", "Editar Turma", "Excluir Turma"])
     
-    # --- ABA 1: LISTAR (SEM ID) ---
     with tab1:
         st.subheader("Turmas Ativas")
-        # Query ajustada para não trazer o ID, apenas nomes legíveis
         df = run_query("""
             SELECT d.nome as Disciplina, p.nome as Professor, 
                    s.numero_sala as Sala, t.ano as Ano, t.semestre as Semestre
@@ -22,12 +19,9 @@ def render():
         """)
         
         if not df.empty:
-            # Formatação visual: Sem index e ajustado à largura
-            st.dataframe(df, use_container_width=True, hide_index=True)
+            st.dataframe(df, width='stretch', hide_index=True)
         else:
             st.info("Nenhuma turma cadastrada.")
-
-    # --- ABA 2: NOVA TURMA ---
     with tab2:
         st.subheader("Abrir Nova Turma")
         discs = run_query("SELECT id_disciplina, nome FROM disciplina")
@@ -57,11 +51,8 @@ def render():
         else:
             st.error("Cadastre Disciplinas, Professores e Salas antes.")
 
-    # --- ABA 3: EDITAR TURMA (NOVO!) ---
     with tab3:
         st.subheader("Editar Turma")
-        
-        # 1. Selecionar Turma
         turmas = run_query("""
             SELECT t.id_turma, d.nome, t.ano, t.semestre 
             FROM turma t JOIN disciplina d ON t.id_disciplina = d.id_disciplina
@@ -73,10 +64,8 @@ def render():
             turma_nome = st.selectbox("Selecione para Editar", list(t_dict.keys()), key="sel_edit_t")
             id_t = t_dict[turma_nome]
             
-            # 2. Carregar dados atuais da turma
             dados = run_query(f"SELECT * FROM turma WHERE id_turma = {id_t}").iloc[0]
             
-            # Carregar listas auxiliares
             discs = run_query("SELECT id_disciplina, nome FROM disciplina")
             profs = run_query("SELECT id_prof, nome FROM professor")
             salas = run_query("SELECT id_sala, numero_sala, tipo FROM sala")
@@ -85,17 +74,14 @@ def render():
                 with st.form("edit_turma_form"):
                     c1, c2 = st.columns(2)
                     novo_ano = c1.number_input("Ano", value=int(dados['ano']), step=1)
-                    # Hack para pegar index do semestre (0 ou 1)
                     idx_sem = 0 if dados['semestre'] == 1 else 1
                     novo_sem = c2.selectbox("Semestre", [1, 2], index=idx_sem)
                     
-                    # Mapas de IDs
+
                     disc_map = {r['nome']: r['id_disciplina'] for _, r in discs.iterrows()}
                     prof_map = {r['nome']: r['id_prof'] for _, r in profs.iterrows()}
                     sala_map = {f"{r['numero_sala']} ({r['tipo']})": r['id_sala'] for _, r in salas.iterrows()}
                     
-                    # Encontrar indices atuais para deixar selecionado
-                    # (Lógica: busca a chave cujo valor é igual ao ID salvo no banco)
                     curr_disc_name = next(k for k, v in disc_map.items() if v == dados['id_disciplina'])
                     curr_prof_name = next(k for k, v in prof_map.items() if v == dados['id_prof'])
                     curr_sala_name = next(k for k, v in sala_map.items() if v == dados['id_sala'])
@@ -124,11 +110,9 @@ def render():
                         else: st.error(msg)
         else:
             st.info("Nenhuma turma para editar.")
-
-    # --- ABA 4: EXCLUIR TURMA ---
     with tab4:
         st.subheader("Encerrar Turma")
-        st.warning("⚠️ Isso apaga TUDO: matrículas, notas, frequências e avaliações desta turma.")
+        st.warning("Isso apaga TUDO: matrículas, notas, frequências e avaliações desta turma.")
         
         turmas = run_query("SELECT t.id_turma, d.nome, t.ano, t.semestre FROM turma t JOIN disciplina d ON t.id_disciplina = d.id_disciplina")
         if not turmas.empty:
@@ -137,7 +121,6 @@ def render():
             
             if st.button("Confirmar Exclusão"):
                 id_t = t_map[sel_del]
-                # Cascata completa
                 run_action("DELETE FROM nota WHERE id_matricula IN (SELECT id_matricula FROM matricula WHERE id_turma = :id)", {"id": id_t})
                 run_action("DELETE FROM frequencia WHERE id_matricula IN (SELECT id_matricula FROM matricula WHERE id_turma = :id)", {"id": id_t})
                 run_action("DELETE FROM nota WHERE id_avaliacao IN (SELECT id_avaliacao FROM avaliacao WHERE id_turma = :id)", {"id": id_t})

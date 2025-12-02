@@ -6,19 +6,15 @@ def render():
     st.header("Gerenciamento de Salas")
     
     tab1, tab2, tab3, tab4 = st.tabs(["Listar Salas", "Nova Sala", "Editar Sala", "Excluir Sala"])
-    
-    # --- ABA 1: LISTAR ---
     with tab1:
         st.subheader("Salas Cadastradas")
         df = run_query("SELECT numero_sala,capacidade,tipo FROM sala ORDER BY numero_sala")
         
         if not df.empty:
-            # Mostra a tabela
-            st.dataframe(df, use_container_width=True, hide_index=True)
+            st.dataframe(df, width='stretch', hide_index=True)
         else:
             st.info("Nenhuma sala cadastrada.")
 
-    # --- ABA 2: CADASTRAR ---
     with tab2:
         st.subheader("Cadastrar Nova Sala")
         
@@ -38,7 +34,6 @@ def render():
                 else:
                     st.error(f"Erro ao salvar: {msg}")
 
-    # --- ABA 3: EDITAR ---
     with tab3:
         st.subheader("Editar Sala")
         
@@ -48,15 +43,13 @@ def render():
             sala_dict = {f"{row['numero_sala']} ({row['tipo']})": row['id_sala'] for _, row in salas.iterrows()}
             sel_nome = st.selectbox("Selecione para Editar", list(sala_dict.keys()))
             id_sel = sala_dict[sel_nome]
-            
-            # Carregar dados atuais
+
             dados = run_query(f"SELECT * FROM sala WHERE id_sala = {id_sel}").iloc[0]
             
             with st.form("form_edit_sala"):
                 novo_num = st.text_input("Número/Nome", value=dados['numero_sala'])
                 nova_cap = st.number_input("Capacidade", min_value=1, value=int(dados['capacidade']))
                 
-                # Tenta achar o índice do tipo atual na lista padrão
                 tipos_opcoes = ["Sala de Aula", "Laboratório", "Auditório", "Biblioteca", "Ginásio"]
                 idx_tipo = tipos_opcoes.index(dados['tipo']) if dados['tipo'] in tipos_opcoes else 0
                 novo_tipo = st.selectbox("Tipo", tipos_opcoes, index=idx_tipo)
@@ -74,7 +67,6 @@ def render():
         else:
             st.warning("Cadastre salas primeiro.")
 
-    # --- ABA 4: EXCLUIR ---
     with tab4:
         st.subheader("Excluir Sala")
         

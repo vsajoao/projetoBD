@@ -6,22 +6,19 @@ def render():
     st.header("Gerenciamento de Alunos")
     
     tab1, tab2, tab3, tab4 = st.tabs(["Listar Alunos", "Novo Aluno", "Editar Aluno", "Excluir Aluno"])
-    
-    # --- LISTAR ---
+
     with tab1:
         st.subheader("Lista de Alunos")
         df_alunos = run_query("SELECT nome, email, data_nascimento, foto FROM aluno")
         
         if not df_alunos.empty:
-            st.dataframe(df_alunos[['nome', 'email', 'data_nascimento']], use_container_width=True, hide_index=True)
+            st.dataframe(df_alunos[['nome', 'email', 'data_nascimento']], width='stretch', hide_index=True)
             st.markdown("### 📸 Galeria de Fotos")
             cols = st.columns(5)
             for index, row in df_alunos.iterrows():
                 with cols[index % 5]:
                     if row['foto']:
                         st.image(row['foto'], caption=row['nome'], width=100)
-    
-    # --- CADASTRAR ---
     with tab2:
         st.subheader("Cadastrar Novo")
         with st.form("form_cadastro"):
@@ -39,8 +36,6 @@ def render():
                     st.rerun()
                 else:
                     st.error(f"Erro: {msg}")
-
-    # --- EDITAR ---
     with tab3:
         st.subheader("Editar Aluno Existente")
         df_select = run_query("SELECT id_aluno, nome FROM aluno")
@@ -76,7 +71,6 @@ def render():
                         else:
                             st.error(f"Erro ao atualizar: {msg}")
 
-    # --- EXCLUIR ---
     with tab4:
         st.subheader("Excluir Aluno")
         st.warning("⚠️ Atenção: Ao excluir, todas as matrículas e notas serão apagadas.")
@@ -87,7 +81,6 @@ def render():
             
             if st.button("Confirmar Exclusão"):
                 id_del = aluno_dict_del[del_nome]
-                # Cascata manual
                 run_action("DELETE FROM nota WHERE id_matricula IN (SELECT id_matricula FROM matricula WHERE id_aluno = :id)", {"id": id_del})
                 run_action("DELETE FROM frequencia WHERE id_matricula IN (SELECT id_matricula FROM matricula WHERE id_aluno = :id)", {"id": id_del})
                 run_action("DELETE FROM matricula WHERE id_aluno = :id", {"id": id_del})

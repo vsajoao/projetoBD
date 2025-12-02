@@ -7,7 +7,6 @@ def render():
     
     tab1, tab2, tab3 = st.tabs(["Agendar & Listar", "Editar Avaliação", "Excluir Avaliação"])
     
-    # Busca turmas para o dropdown (usado em todas as abas)
     turmas_df = run_query("""
         SELECT t.id_turma, d.nome as disc, p.nome as prof, t.ano, t.semestre 
         FROM turma t
@@ -22,7 +21,6 @@ def render():
 
     turma_dict = {f"{row['disc']} ({row['ano']}/{row['semestre']}) - Prof. {row['prof']}": row['id_turma'] for _, row in turmas_df.iterrows()}
 
-    # --- ABA 1: LISTAR E ADICIONAR ---
     with tab1:
         st.subheader("Cronograma de Provas")
         
@@ -31,18 +29,16 @@ def render():
         
         st.divider()
         col_list, col_form = st.columns([1, 1])
-        
-        # Lista
+
         with col_list:
-            st.markdown("##### 📅 Avaliações Agendadas")
+            st.markdown("##### Avaliações Agendadas")
             avals = run_query(f"SELECT descricao, peso, data_prevista FROM avaliacao WHERE id_turma = {id_turma_sel}")
             if not avals.empty:
                 avals['data_prevista'] = pd.to_datetime(avals['data_prevista']).dt.strftime('%d/%m/%Y')
-                st.dataframe(avals, use_container_width=True)
+                st.dataframe(avals, width='stretch')
             else:
                 st.info("Nenhuma avaliação nesta turma.")
 
-        # Formulário Cadastro
         with col_form:
             st.markdown("##### ➕ Nova Avaliação")
             with st.form("add_aval_form"):
@@ -58,8 +54,6 @@ def render():
                         st.rerun()
                     else:
                         st.error(msg)
-
-    # --- ABA 2: EDITAR ---
     with tab2:
         st.subheader("Editar Avaliação")
         
@@ -92,10 +86,9 @@ def render():
         else:
             st.info("Sem avaliações para editar nesta turma.")
 
-    # --- ABA 3: EXCLUIR ---
     with tab3:
         st.subheader("Excluir Avaliação")
-        st.warning("⚠️ Ao excluir uma avaliação, todas as NOTAS lançadas para ela serão apagadas.")
+        st.warning("Ao excluir uma avaliação, todas as NOTAS lançadas para ela serão apagadas.")
         
         turma_nome_del = st.selectbox("Selecione a Turma:", list(turma_dict.keys()), key="sel_turma_del")
         id_turma_del = turma_dict[turma_nome_del]
@@ -108,7 +101,6 @@ def render():
             
             if st.button("Confirmar Exclusão"):
                 id_del = aval_dict_del[aval_nome_del]
-                # Cascata manual: apaga notas primeiro
                 run_action("DELETE FROM nota WHERE id_avaliacao = :id", {"id": id_del})
                 success, msg = run_action("DELETE FROM avaliacao WHERE id_avaliacao = :id", {"id": id_del})
                 

@@ -70,7 +70,7 @@ def render():
         },
         disabled=["id_matricula", "Nome do Aluno"], # Impede editar nome/id
         hide_index=True,
-        use_container_width=True
+        width='stretch'
     )
 
     # 5. Botão Salvar
