@@ -36,34 +36,6 @@ Responsável pela visualização de dados consolidados e processamento final.
 2. Stored Procedures: Lógica procedural para encerramento de semestre e atualização de status.
 3. Triggers: Validação de Notas (0 a 10).
 
-## Estrutura de Arquivos
-
-projetoBD/
-├── app/
-│   ├── app.py               # Arquivo principal (Navegação e Rotas)
-│   ├── database.py          # Gerenciamento de conexão (SQLAlchemy)
-│   └── telas/               # Módulos da interface gráfica
-│       ├── alunos.py
-│       ├── avaliacoes.py
-│       ├── boletim.py
-│       ├── dashboard.py
-│       ├── disciplinas.py
-│       ├── fechamento.py
-│       ├── frequencia.py
-│       ├── matriculas.py
-│       ├── notas.py
-│       ├── salas.py
-│       └── turmas.py
-├── sql/
-│   ├── schemas.sql          # Script DDL (Tabelas)
-│   ├── data.sql             # Script DML (Dados iniciais)
-│   ├── view.sql             # Script de Criação de Views
-│   ├── procedure.sql        # Script de Stored Procedures
-│   └── trigger.sql          # Script de Triggers
-├── modelo_relacional.png    # Imagem do DER/Modelo Relacional
-├── requirements.txt         # Dependências do Python
-└── README.md                # Documentação
-
 ## Como Executar o Projeto
 
 ### Pré-requisitos
