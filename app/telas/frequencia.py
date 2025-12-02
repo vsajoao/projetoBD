@@ -5,8 +5,7 @@ from database import run_query, run_action
 
 def render():
     st.header("Diário de Classe (Frequência)")
-    
-    # 1. Selecionar Turma
+
     turmas = run_query("""
         SELECT t.id_turma, d.nome as disc, p.nome as prof, t.ano, t.semestre 
         FROM turma t
@@ -23,14 +22,11 @@ def render():
     turma_selecionada = st.selectbox("Selecione a Turma:", list(turma_dict.keys()))
     id_turma = turma_dict[turma_selecionada]
 
-    # 2. Selecionar Data
     col_data, col_vazio = st.columns([1, 3])
     data_chamada = col_data.date_input("Data da Aula", value=date.today())
 
     st.divider()
 
-    # 3. Buscar Alunos e Status Atual (se já houve chamada nesse dia)
-    # Fazemos um LEFT JOIN com a tabela frequencia para ver se já tem registro nesse dia
     sql = f"""
         SELECT 
             m.id_matricula, 
@@ -50,48 +46,40 @@ def render():
         st.info("Nenhum aluno matriculado nesta turma.")
         return
 
-    # Ajusta o tipo de dado para Boolean para o Streamlit mostrar Checkbox
+
     df_chamada['Presente'] = df_chamada['Presente'].astype(bool)
 
-    # 4. Tabela Editável (Data Editor)
     st.subheader(f"Lista de Presença - {data_chamada.strftime('%d/%m/%Y')}")
     st.caption("Marque a caixa para PRESENTE. Desmarque para AUSENTE.")
 
-    # O st.data_editor permite editar a tabela na tela
     df_editado = st.data_editor(
-        df_chamada[['id_matricula', 'Nome do Aluno', 'Presente']], # Esconde o ID da frequencia
+        df_chamada[['id_matricula', 'Nome do Aluno', 'Presente']],
         column_config={
             "Presente": st.column_config.CheckboxColumn(
                 "Presença",
                 help="Marque se o aluno estava presente",
                 default=False,
             ),
-            "id_matricula": None, # Esconde o ID visualmente
+            "id_matricula": None,
         },
-        disabled=["id_matricula", "Nome do Aluno"], # Impede editar nome/id
+        disabled=["id_matricula", "Nome do Aluno"],
         hide_index=True,
         width='stretch'
     )
 
-    # 5. Botão Salvar
     if st.button("Salvar Chamada"):
         sucesso_total = True
         
-        # Comparamos o DF editado com o original para saber os IDs ocultos
-        # Iteramos sobre as linhas para salvar no banco
         for index, row in df_editado.iterrows():
             presenca_valor = 1 if row['Presente'] else 0
             id_mat = row['id_matricula']
-            
-            # Recupera o id_frequencia original (se existia) usando o index
+    
             id_freq_existente = df_chamada.iloc[index]['id_frequencia']
-            
-            # Se id_freq_existente for NaN (pandas) ou None, significa que não tinha registro -> INSERT
+
             if pd.isna(id_freq_existente):
                 sql_save = "INSERT INTO frequencia (data_aula, presente, id_matricula) VALUES (:dt, :p, :idm)"
                 params = {"dt": data_chamada, "p": presenca_valor, "idm": id_mat}
             else:
-                # Se já existia, faz UPDATE
                 sql_save = "UPDATE frequencia SET presente = :p WHERE id_frequencia = :idf"
                 params = {"p": presenca_valor, "idf": id_freq_existente}
             
@@ -101,7 +89,6 @@ def render():
         
         if sucesso_total:
             st.success("Frequência salva com sucesso!")
-            # Recarrega a página para atualizar os IDs
             st.rerun()
         else:
             st.error("Houve um erro ao salvar alguns registros.")

@@ -13,7 +13,7 @@ def render():
         
         if not df_alunos.empty:
             st.dataframe(df_alunos[['nome', 'email', 'data_nascimento']], width='stretch', hide_index=True)
-            st.markdown("### 📸 Galeria de Fotos")
+            st.markdown("### Galeria de Fotos")
             cols = st.columns(5)
             for index, row in df_alunos.iterrows():
                 with cols[index % 5]:
@@ -73,7 +73,7 @@ def render():
 
     with tab4:
         st.subheader("Excluir Aluno")
-        st.warning("⚠️ Atenção: Ao excluir, todas as matrículas e notas serão apagadas.")
+        st.warning("Atenção: Ao excluir, todas as matrículas e notas serão apagadas.")
         
         if not df_alunos.empty:
             aluno_dict_del = {row['nome']: row['id_aluno'] for _, row in run_query("SELECT id_aluno, nome FROM aluno").iterrows()}

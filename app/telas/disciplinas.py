@@ -101,7 +101,7 @@ def render():
         if not discs.empty:
             sel_del_nome = st.selectbox("Selecione para Excluir", list(disc_dict.keys()), key="del_disc")
             
-            st.warning("⚠️ Atenção: Você só pode excluir disciplinas que NÃO tenham turmas cadastradas.")
+            st.warning("Atenção: Você só pode excluir disciplinas que NÃO tenham turmas cadastradas.")
             
             if st.button("Confirmar Exclusão"):
                 id_del = disc_dict[sel_del_nome]

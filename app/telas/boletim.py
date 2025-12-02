@@ -36,7 +36,7 @@ def render():
 
     with col_resumo:
         st.subheader(f"Aluno: {df.iloc[0]['Aluno_Nome']}")
-        st.write(f"📧 Email: {df.iloc[0]['Aluno_Email']}")
+        st.write(f"Email: {df.iloc[0]['Aluno_Email']}")
         
         media_global = df['Media_Final'].mean()
 

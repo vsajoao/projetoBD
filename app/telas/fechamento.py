@@ -3,7 +3,7 @@ import pandas as pd
 from database import run_query, run_action
 
 def render():
-    st.header("🔒 Fechamento de Semestre (Procedure)")
+    st.header("Fechamento de Semestre")
 
     alunos = run_query("SELECT id_aluno, nome FROM aluno ORDER BY nome")
     
